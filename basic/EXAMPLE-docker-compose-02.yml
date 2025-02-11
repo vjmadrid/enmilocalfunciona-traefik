@@ -1,0 +1,30 @@
+services:
+  traefik:
+    image: traefik:v2.5
+    container_name: "traefik"
+    restart: always
+    networks: ['demo']
+    command:
+      - "--api.insecure=true" #Flag enables the web UI without authentication
+      - "--providers.docker=true"
+    ports:
+      - 80:80
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  backend1:
+    image: httpd:alpine
+    container_name: "backend1"
+    restart: always
+    networks: ['demo']
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend1.rule=Host(`backend1.localhost`)"
+      # Automatic HTTPS with Let's Encrypt
+      #- "traefik.http.routers.backend1.tls=true"
+      #- "traefik.http.routers.backend1.tls.certresolver=myresolver"
+
+networks:
+  demo:
+    driver: bridge

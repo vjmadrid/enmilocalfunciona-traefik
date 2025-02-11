@@ -1,0 +1,64 @@
+services:
+  traefik:
+    image: traefik:v2.5
+    container_name: "traefik"
+    restart: always
+    networks: ['demo']
+    command:
+      - "--api.insecure=true"  #Flag enables the web UI without authentication
+      - "--providers.docker=true"
+      # Define entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # Configuration for certificate and dns
+      #- --certificatesresolvers.myresolver.acme.dnschallenge=true
+      #- --certificatesresolvers.myresolver.acme.dnschallenge.provider=namecheap
+      #- --certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
+      #- --certificatesresolvers.myresolver.acme.email=xxxxxxxx
+      #- --certificatesresolvers.myresolver.acme.storage=/acme.json
+      #- --certificatesresolvers.myresolver.acme.dnschallenge.resolvers=8.8.8.8:53
+      #- --certificatesresolvers.myresolver.acme.dnschallenge.delayBeforeCheck=5
+
+    ## Namecheap env ##
+    #environment:
+    #- "NAMECHEAP_API_USER=xxxxxxxxxxxxxxxxx"
+    #- "NAMECHEAP_API_KEY=xxxxxxxxxxxxxxxxxx"
+    ports:
+      - 80:80
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+        ## configuration for certificate and dns ##
+        #- /opt/traefik/acme.json:/acme.json
+
+  backend1:
+    image: httpd:alpine
+    container_name: "backend1"
+    restart: always
+    networks: ['demo']
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend1.rule=Host(`backend1.localhost`)"
+      - "traefik.http.routers.backend1.entrypoints=web"
+      - "traefik.http.services.backend1.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.backend1-redirect.redirectscheme.scheme=http"
+    volumes:
+      - ../config/index1.html:/usr/local/apache2/htdocs/index.html
+
+  backend2:
+    image: nginx:alpine
+    container_name: "backend2"
+    restart: always
+    networks: ['demo']
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend2.rule=Host(`backend2.localhost`)"
+      - "traefik.http.routers.backend2.entrypoints=web"
+      - "traefik.http.services.backend2.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.backend2-redirect.redirectscheme.scheme=http"
+    volumes:
+      - ../config/index2.html:/usr/share/nginx/html/index.html
+
+networks:
+  demo:
+    driver: bridge
