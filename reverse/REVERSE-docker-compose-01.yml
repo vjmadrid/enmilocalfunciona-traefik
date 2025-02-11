@@ -1,16 +1,21 @@
+# Project URL: https://github.com/traefik/traefik
+# Docs URL: https://doc.traefik.io/traefik/
 services:
   traefik:
     image: traefik:v2.5
-    container_name: "traefik"
-    restart: always
+    container_name: traefik
+    restart: unless-stopped
     networks: ['demo']
     command:
-      - "--api.insecure=true"  #Flag enables the web UI without authentication
-      - "--providers.docker=true"
-      # Define entrypoints
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      # Configuration for certificate and dns
+      - --api.insecure=true #Flag enables the web UI without authentication
+      # *** Docker provider configuration ***
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false # Makes sure that services have to explicitly direct Traefik to expose them
+      - --providers.docker.network=demo # Default docker network to use for connections to all containers
+      # *** Entrypoints configuration ***
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # *** Configuration for certificate and DNS ***
       #- --certificatesresolvers.myresolver.acme.dnschallenge=true
       #- --certificatesresolvers.myresolver.acme.dnschallenge.provider=namecheap
       #- --certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
@@ -18,6 +23,8 @@ services:
       #- --certificatesresolvers.myresolver.acme.storage=/acme.json
       #- --certificatesresolvers.myresolver.acme.dnschallenge.resolvers=8.8.8.8:53
       #- --certificatesresolvers.myresolver.acme.dnschallenge.delayBeforeCheck=5
+      # *** Logging configuration ***
+      - --log.level=info # Logging levels are DEBUG, PANIC, FATAL, ERROR, WARN, and INFO
 
     ## Namecheap env ##
     #environment:
@@ -59,6 +66,10 @@ services:
     volumes:
       - ../config/index2.html:/usr/share/nginx/html/index.html
 
+volumes:
+  traefik-docker:
+
 networks:
   demo:
+    name: demo
     driver: bridge

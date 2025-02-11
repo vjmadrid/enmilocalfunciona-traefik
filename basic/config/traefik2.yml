@@ -1,0 +1,110 @@
+# traefik configuration for the runtime stage only
+#
+# Resources
+#   - https://docs.n8n.io/hosting/configuration/environment-variables/
+
+###################################################################
+### Global configuration
+###
+### Resources
+###     - https://xxx
+###################################################################
+
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false
+
+###################################################################
+### Logging configuration
+###
+### Resources
+###     - https://xxx
+###################################################################
+
+# Traefik logs
+# Enabled by default and log to stdout
+#
+# Optional
+#
+
+log:
+  # Log level
+  #
+  # Optional
+  # Default: "ERROR"
+  #
+  level: DEBUG
+
+  # Sets the filepath for the traefik log. If not specified, stdout will be used.
+  # Intermediate directories are created if necessary.
+  #
+  # Optional
+  # Default: os.Stdout
+  #
+#  filePath: log/traefik.log
+
+  # Format is either "json" or "common".
+  #
+  # Optional
+  # Default: "common"
+  #
+#  format: json
+
+###################################################################
+### API and dashboard configuration
+###
+### Resources
+###     - https://xxx
+###################################################################
+
+# Enable Dashboard and Debug mode
+api:
+  dashboard: true # Optional can be disabled
+  insecure: true # Optional can be disabled
+  debug: false # Optional can be Enabled if needed for troubleshooting
+
+###################################################################
+### Entrypoints configuration
+###
+### Resources
+###     - https://xxx
+###################################################################
+
+# EntryPoints definition
+#
+# Optional
+#
+entryPoints:
+
+  web:
+    address: ":80"
+  # Optional if you want to redirect all HTTP to HTTPS
+  #  http:
+  #    redirections:
+  #      entryPoint:
+  #        to: websecure
+  #        scheme: https
+
+  websecure:
+    address: ":443"
+
+serversTransport:
+  insecureSkipVerify: true
+
+# Tell Traefik that we use docker as provider
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: demo # Optional; Only use the "proxy" Docker network, even if containers are on multiple networks.
+
+# Define Certificate resolvers. Acme = LetsEncrypt
+certificatesResolvers:
+  letencrypt:
+    acme:
+      email: admin@acme.com
+      storage: /certs/acme.json
+      # caServer: https://acme-v02.api.letsencrypt.org/directory # prod (default)
+      caServer: https://acme-staging-v02.api.letsencrypt.org/directory # staging
+      httpChallenge:
+        entryPoint: web

@@ -10,17 +10,6 @@ services:
       - no-new-privileges:true
     environment:
       - TZ=Europe/Madrid
-    command:
-      # *** Logging configuration ***
-      - --log.level=info # Logging levels are DEBUG, PANIC, FATAL, ERROR, WARN, and INFO
-      #- --log.format=json
-      # *** API configuration ***
-      - --api.insecure=true # Set access to traefic api wihout autentication
-      # *** Docker provider configuration ***
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      # *** Entrypoints configuration ***
-      - --entryPoints.web.address=:80
     ports:
       - 80:80
       - 8080:8080
@@ -29,10 +18,11 @@ services:
       - ./traefik-docker/logs:/logs # Storage for Traefik Logs
       - ./traefik-docker/letsencrypt:/letsencrypt # Storage for Letsencrypt certificates
       - ./traefik-docker/certs:/certs # Storage for certificates
-      - ./traefik-docker/traefik:/etc/traefik # Traefik configuration
+      - ./config/traefik2.yml:/traefik.yml:ro
+      #- ./traefik-docker/traefik/traefik.yml:/etc/traefik/traefik.yml
 
 volumes:
-  traefik-docker:
+  traefik-data:
 
 networks:
   demo:
