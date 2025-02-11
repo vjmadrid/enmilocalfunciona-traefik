@@ -1,0 +1,43 @@
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: "traefik"
+    restart: always
+    networks: ['demo']
+    command:
+      - "--api.insecure=true"  #Flag enables the web UI without authentication
+      - "--providers.docker=true"
+      # Define entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--api.dashboard=true"
+      - "--providers.docker.watch"
+    ports:
+      - 80:80
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+        ## configuration for certificate and dns ##
+        #- /opt/traefik/acme.json:/acme.json
+
+  backend1:
+    image: nginx:alpine
+    container_name: "backend1"
+    restart: always
+    networks: ['demo']
+    labels:
+      - "traefik.http.routers.app.rule=Host(`example.localhost`)"
+      - "traefik.http.services.app.loadbalancer.server.port=80"
+
+  backend2:
+    image: httpd:alpine
+    container_name: "backend2"
+    restart: always
+    networks: ['demo']
+    labels:
+      - "traefik.http.routers.app.rule=Host(`example.localhost`)"
+      - "traefik.http.services.app.loadbalancer.server.port=80"
+
+networks:
+  demo:
+    driver: bridge
