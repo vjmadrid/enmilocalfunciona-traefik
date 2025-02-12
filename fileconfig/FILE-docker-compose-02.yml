@@ -1,0 +1,70 @@
+# Project URL: https://github.com/traefik/traefik
+# Docs URL: https://doc.traefik.io/traefik/
+services:
+  traefik:
+    image: traefik:v3.3.3
+    container_name: traefik
+    restart: unless-stopped
+    networks: ['demo']
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - TZ=Europe/Madrid
+    ports:
+      - 80:80
+      - 8080:8080
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Access to Docker on host machine
+      - ./traefik-docker/logs:/logs # Storage for Traefik Logs
+      - ./traefik-docker/letsencrypt:/letsencrypt # Storage for Letsencrypt certificates
+      - ./traefik-docker/certs:/certs # Storage for certificates
+      # *** Configuration **
+      - ./config/traefik3.yml:/traefik.yml:ro               # static traefik configuration
+      - ./config/dynamic.yaml:/etc/traefik/dynamic.yaml:ro  # dynamic traefik configuration
+      - ./config/acme.json:/etc/traefik/acme.json           # TLS certificate storage
+    labels:
+      - traefik.enable=true
+
+      # define basic auth middleware for dashboard
+      - traefik.http.middlewares.traefik-auth.basicauth.removeheader=true
+      - traefik.http.middlewares.traefik-auth.basicauth.users=foobar:$$2y$$05$$z2KwKI.GmZ43BbwfmPPKw.CSl3rqQ0OhzBbdom.orfsMVKGLW/Xeu # CHANGE PASSWORD!! (user: foobar / pwd: foobar)
+      # how to set a real password:
+      # sudo apt-get install apache2-utils
+      # htpasswd -Bnb username password | sed -e s/\\$/\\$\\$/g
+
+      # define traefik dashboard router and service
+      - traefik.http.routers.traefik.rule=Host(`acme.localhost`)
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.tls.certresolver=tlschallenge
+      - traefik.http.routers.traefik.entrypoints=web-secure
+      - traefik.http.routers.traefik.middlewares=traefik-auth, secHeaders@file, autodetectContenttype@file
+      - traefik.http.services.traefik.loadbalancer.server.port=8080
+
+  # https://github.com/traefik/whoami
+  whoami:
+    image: traefik/whoami:v1.10.4
+    container_name: whoami
+    restart: always
+    networks: ['demo']
+    labels:
+      # *** General Traefik configuration ***
+      - traefik.enable=true # Explicitly instruct Traefik to expose this service
+      # *** Router configuration ***
+      - traefik.http.routers.whoami.rule=Host(`whoami.localhost`) # Rule based on the Host of the request
+      - traefik.http.routers.whoami.entrypoints=web-secure
+      # *** Service configuration ***
+      - traefik.http.services.whoami.loadbalancer.server.port=80
+      # *** TLS configuration ***
+      - traefik.http.routers.whoami.tls=true
+      - traefik.http.routers.whoami.tls.certresolver=tlschallenge
+      # *** Middleware configuration ***
+      - traefik.http.routers.whoami.middlewares=secHeaders@file
+
+volumes:
+  traefik-data:
+
+networks:
+  demo:
+    name: demo
+    driver: bridge

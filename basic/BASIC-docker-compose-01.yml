@@ -26,10 +26,10 @@ services:
       - 8080:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro # Access to Docker on host machine
-      - ./traefik-docker/logs:/logs # Storage for Traefik Logs
-      - ./traefik-docker/letsencrypt:/letsencrypt # Storage for Letsencrypt certificates
-      - ./traefik-docker/certs:/certs # Storage for certificates
-      - ./traefik-docker/traefik:/etc/traefik # Traefik configuration
+      #- ./traefik-docker/logs:/logs # Storage for Traefik Logs
+      #- ./traefik-docker/letsencrypt:/letsencrypt # Storage for Letsencrypt certificates
+      #- ./traefik-docker/certs:/certs # Storage for certificates
+      #- ./traefik-docker/traefik:/etc/traefik # Traefik configuration
 
 volumes:
   traefik-docker:

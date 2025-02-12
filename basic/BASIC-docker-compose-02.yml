@@ -32,19 +32,20 @@ services:
       #- ./traefik-docker/traefik:/etc/traefik # Traefik configuration
 
   # https://github.com/traefik/whoami
-  whoami:
+  backend1:
     image: traefik/whoami:v1.10.4
-    container_name: whoami
+    container_name: backend1
     restart: always
     networks: ['demo']
     labels:
       # *** General Traefik configuration ***
       - traefik.enable=true # Explicitly instruct Traefik to expose this service
       # *** Router configuration ***
-      - traefik.http.routers.whoami.rule=Host(`whoami.localhost`) # Rule based on the Host of the request
-      - traefik.http.routers.whoami.entrypoints=web # Listen to the 'web' entrypoint
+      # curl -H Host:backend1.localhost http://127.0.0.1
+      - traefik.http.routers.backend1.rule=Host(`backend1.localhost`) # Rule based on the Host of the request
+      - traefik.http.routers.backend1.entrypoints=web # Listen to the 'web' entrypoint
       # *** Service configuration ***
-      - traefik.http.services.whoami.loadbalancer.server.port=80
+      - traefik.http.services.backend1.loadbalancer.server.port=80
 
 volumes:
   traefik-docker:

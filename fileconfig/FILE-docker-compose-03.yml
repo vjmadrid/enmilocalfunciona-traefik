@@ -1,0 +1,62 @@
+# Project URL: https://github.com/traefik/traefik
+# Docs URL: https://doc.traefik.io/traefik/
+services:
+  traefik:
+    image: traefik:v3.3.3
+    container_name: traefik
+    restart: unless-stopped
+    networks: ['localhost_net']
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - TZ=Europe/Madrid
+    command: "--configFile=/config/traefik.yml"
+    ports:
+      - 80:80
+      - 8080:8080
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Access to Docker on host machine
+      - ./config/traefik4.yml:/config/traefik.yml:ro
+      - ./config/localhost.crt:/certs/localhost.crt:ro
+      - ./config/localhost.key:/certs/localhost.key:ro
+      - ./traefik-docker/logs:/logs # Storage for Traefik Logs
+      - ./traefik-docker/letsencrypt:/letsencrypt # Storage for Letsencrypt certificates
+      - ./traefik-docker/certs:/certs # Storage for certificates
+      - ./traefik-docker/traefik-data:/etc/traefik # Traefik configuration
+    labels:
+      # *** General Traefik configuration ***
+      - traefik.enable=true
+      # *** Router configuration ***
+      - traefik.http.routers.traefik.rule=Host(`proxy.localhost`)
+      - traefik.http.routers.traefik.entrypoints=websecure
+      # *** Service configuration ***
+      - traefik.http.services.traefik.loadbalancer.server.port=8080
+      # *** Rate Limiting configuration ***
+      #- traefik.http.middlewares.ratelimit.ratelimit.average=100
+      #- traefik.http.middlewares.ratelimit.ratelimit.burst=50
+
+  backend1:
+    image: httpd:alpine
+    container_name: backend1
+    restart: always
+    networks: ['localhost_net']
+    labels:
+      # *** General Traefik configuration ***
+      - traefik.enable=true
+      # *** Router configuration ***
+      - traefik.http.routers.backend1.rule=Host(`backend1.localhost`)
+      - traefik.http.routers.backend1.entrypoints=websecure
+      # *** Service configuration ***
+      - traefik.http.services.backend1.loadbalancer.server.port=80
+      # *** Healthcheck configuration ***
+      #- traefik.http.services.backend1.loadbalancer.healthcheck.path=/health
+      #- traefik.http.services.backend1.loadbalancer.healthcheck.interval=10s
+
+volumes:
+  traefik-docker:
+
+networks:
+  localhost_net: # Create it before we run docker-compose command: docker network create localhost_net
+    name: localhost_net
+    external: true
