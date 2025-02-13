@@ -11,6 +11,7 @@ services:
     environment:
       - TZ=Europe/Madrid
     command:
+      # STATIC CONFIGURATION
       # *** Logging configuration ***
       - --log.level=info # Logging levels are DEBUG, PANIC, FATAL, ERROR, WARN, and INFO
       #- --log.format=json
@@ -18,14 +19,17 @@ services:
       - --api.insecure=true # Set access to traefic api wihout autentication
       # *** Docker provider configuration ***
       - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
+      - --providers.docker.exposedbydefault=false # Require containers to define 'traefik.enable=true' to be exposed
       # *** Entrypoints configuration ***
-      - --entryPoints.web.address=:80
+      - --entryPoints.web.address=:80 # web entrypoint handles http traffic over port 80
     ports:
       - 80:80
       - 8080:8080
     volumes:
+      # *** General configuration ***
+      #- /etc/localtime:/etc/localtime:ro # Uses the same timezone as the computer instance
       - /var/run/docker.sock:/var/run/docker.sock:ro # Access to Docker on host machine
+      # *** Volume configuration ***
       #- ./traefik-docker/logs:/logs # Storage for Traefik Logs
       #- ./traefik-docker/letsencrypt:/letsencrypt # Storage for Letsencrypt certificates
       #- ./traefik-docker/certs:/certs # Storage for certificates
