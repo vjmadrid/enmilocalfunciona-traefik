@@ -1,0 +1,99 @@
+# Project URL: https://github.com/traefik/traefik
+# Docs URL: https://doc.traefik.io/traefik/
+services:
+  traefik:
+    image: traefik:v3.3.3
+    container_name: traefik
+    restart: unless-stopped
+    networks: ['demo']
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - TZ=Europe/Madrid
+    command:
+      # STATIC CONFIGURATION
+      # *** Logging configuration ***
+      - --log.level=info # Logging levels are DEBUG, PANIC, FATAL, ERROR, WARN, and INFO
+      #- --log.format=json
+      # *** API configuration ***
+      - --api # Enables Traefik Dashboard
+      # *** Docker provider configuration ***
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false # Require containers to define 'traefik.enable=true' to be exposed
+      # *** Entrypoints configuration ***
+      - --entryPoints.web.address=:80 # web entrypoint handles http traffic over port 80
+      - --entrypoints.websecure.address=:443 # websecure entrypoint handles https traffic over port 443
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure # Redirect web to websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https # http will be redirected to https.
+      # *** Certificate configuration ***
+      - --certificatesresolvers.letsencryptresolver.acme.email=${EMAIL}
+      - --certificatesresolvers.letsencryptresolver.acme.storage=/acme.json
+      - --certificatesresolvers.letsencryptresolver.acme.tlschallenge=true
+      #- --certificatesresolvers.myresolver.acme.tlschallenge=true
+      #- --certificatesresolvers.myresolver.acme.email=admin@acme.com
+      #- --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      # *** General configuration ***
+      #- /etc/localtime:/etc/localtime:ro # Uses the same timezone as the computer instance
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Access to Docker on host machine
+      - ./config/acme.json:/acme.json # stores ACME (HTTPS) certificates
+      # *** Volume configuration ***
+      #- ./traefik-docker/logs:/logs # Storage for Traefik Logs
+      - ./traefik-docker/letsencrypt:/letsencrypt # Storage for Letsencrypt certificates
+      #- ./traefik-docker/certs:/certs # Storage for certificates
+      #- ./traefik-docker/traefik:/etc/traefik # Traefik configuration
+    labels:
+      - traefik.enable=true
+      # *** Traefik dashboard configuration ***
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.rule=Host(`proxy.${DOMAIN}`)
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.middlewares=admin
+      - traefik.http.routers.traefik.tls.certresolver=letsencryptresolver
+      #- traefik.http.routers.api.rule=Host(`proxy.$DOMAIN`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+      #- traefik.http.routers.api.service=api@internal
+      #- traefik.http.routers.api.middlewares=auth
+      #- traefik.http.middlewares.auth.basicauth.users=test:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/,test2:$$apr1$$d9hr9HBB$$4HxwgUir3HP4EsggP/QNo0
+      # *** Middlewares configuration ***
+      # "admin" to be used by services that do not have their own security
+      - traefik.http.middlewares.admin.basicauth.users=${HTTP_BASIC_USER}:${HTTP_BASIC_PWD}
+
+
+  backend1:
+    image: httpd:alpine
+    container_name: backend1
+    restart: always
+    networks: ['demo']
+    labels:
+      # *** General Traefik configuration ***
+      - traefik.enable=true # Explicitly instruct Traefik to expose this service
+      # *** Router configuration ***
+      # curl -H Host:backend1.localhost http://127.0.0.1
+      - traefik.http.routers.backend1.rule=Host(`backend1.$DOMAIN`) #Rule based on the Host of the request
+      - traefik.http.routers.backend1.entrypoints=web
+      # SEGURIDAD
+      #- traefik.http.routers.backend1.tls=true
+      #- traefik.http.routers.backend1.entrypoints=websecure
+      #- traefik.http.routers.backend1.tls.certresolver=lets-encrypt
+      # Temporal
+      #- traefik.http.routers.backend1.middlewares=ftrss-auth@docker
+      #- traefik.http.middlewares.backend1-auth.basicauth.users=$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/
+      # HEADERS
+      #- traefik.http.middlewares.backend1-headers.headers.framedeny=false
+      #- traefik.http.middlewares.backend1-headers.headers.sslredirect=true
+      #- traefik.http.middlewares.backend1-headers.headers.stsSeconds=155520011
+      #- traefik.http.middlewares.backend1-headers.headers.stsIncludeSubdomains=true
+      #- traefik.http.middlewares.backend1-headers.headers.stsPreload=true
+      # *** Service configuration ***
+      - traefik.http.services.backend1.loadbalancer.server.port=80
+
+volumes:
+  traefik-docker:
+
+networks:
+  demo:
+    name: demo
+    driver: bridge

@@ -3,7 +3,7 @@
 
 ## Configuración
 
-#### Configuración del dominio
+### Configuración del dominio
 
 Se usaran 3 dominios locales para exponer los endpoints del ejemplo
 
@@ -45,3 +45,30 @@ OSX 10.7 + 10.8: sudo killall -HUP mDNSResponder
 OSX 10.9 and above: sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 OSX 10.12 and above: sudo dscacheutil -flushcache
 OSX 10.14.5 and above: dscacheutil -flushcache
+
+
+
+### Crear una contraseña para Traefik
+
+Crear un hash para realizar login en el panel web de Traefik
+
+Se puede utilizar la librería: apache2-utils
+
+
+```bash
+    htpasswd -nb test passwordtest
+```
+
+### Crear el fichero "acme.json"
+
+touch acme.json
+
+chmod 600 acme.json
+
+
+### Crear un red puclica en docker
+
+```bash
+    docker network create traefik_public
+```
+

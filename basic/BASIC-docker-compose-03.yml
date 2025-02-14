@@ -45,8 +45,8 @@ services:
       - traefik.enable=true # Explicitly instruct Traefik to expose this service
       # *** Router configuration ***
       # curl -H Host:backend1.localhost http://127.0.0.1
-      - traefik.http.routers.backend1.rule=Host(`backend1.localhost`) #Rule based on the Host of the request
-      - traefik.http.routers.backend1.entrypoints=web
+      - traefik.http.routers.backend1.rule=Host(`backend1.localhost`) # Rule based on the Host of the request
+      - traefik.http.routers.backend1.entrypoints=web # Listen to the 'web' entrypoint
       # *** Service configuration ***
       - traefik.http.services.backend1.loadbalancer.server.port=80
 

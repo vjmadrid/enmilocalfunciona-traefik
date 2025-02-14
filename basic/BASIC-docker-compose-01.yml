@@ -20,6 +20,7 @@ services:
       # *** Docker provider configuration ***
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false # Require containers to define 'traefik.enable=true' to be exposed
+      #- --providers.docker.network=demo
       # *** Entrypoints configuration ***
       - --entryPoints.web.address=:80 # web entrypoint handles http traffic over port 80
     ports:
