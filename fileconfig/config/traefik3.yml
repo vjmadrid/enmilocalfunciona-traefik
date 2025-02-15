@@ -2,6 +2,7 @@
 # accessLog: {}  # uncomment this line to enable access log
 log:
   level: WARN  # ERROR, DEBUG, PANIC, FATAL, ERROR, WARN, INFO
+
 providers:
   docker:
     exposedByDefault: false
@@ -10,18 +11,21 @@ providers:
   file:
     filename: /etc/traefik/dynamic.yml
     watch: true
+
 api:
   dashboard: true # if you don't need the dashboard disable it
+
 entryPoints:
   web:
-    address: ':80' # http
+    address: ':80'
     http:
       redirections:
         entryPoint:
           to: web-secure
           scheme: https
   web-secure:
-    address: ':443' # https
+    address: ':443'
+
 certificatesResolvers:
   tlschallenge:
     acme:
@@ -29,6 +33,7 @@ certificatesResolvers:
       email: admin@acme
       storage: /etc/traefik/acme.json # chmod 600 this file on the host system
       tlsChallenge: {}
+
 global:
   checkNewVersion: true
   sendAnonymousUsage: true # disable this if you don't want to send anonymous usage data to traefik

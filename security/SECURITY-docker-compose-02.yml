@@ -47,6 +47,7 @@ services:
       #- ./traefik-docker/traefik:/etc/traefik # Traefik configuration
     labels:
       - traefik.enable=true
+      #- traefik.docker.network=demo
       # *** Traefik dashboard configuration ***
       - traefik.http.routers.traefik.entrypoints=websecure
       - traefik.http.routers.traefik.rule=Host(`proxy.${DOMAIN}`)

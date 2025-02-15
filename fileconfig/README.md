@@ -55,7 +55,19 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 Este comando generará los ficheros: localhost.crt y localhost.key
 
 
-    chmod 600 config/acme.json
+### Configuración del fichero "acme.json"
+
+Fichero utilizado por Traefik para almacenar los certificados que Traefik genera
+
+Pasos a seguir
+
+* Crear el fichero en la ruta determinada
+* Cambiar los permisos del fichero
+
+```bash
+ chmod 600 config/acme.json
+```
+
     docker-compose.yaml: change hostname 'test.example.invalid' to your real hostname
     docker-compose.yaml: change basic auth password!! (see comments in file)
     config/traefik.yaml: change email address

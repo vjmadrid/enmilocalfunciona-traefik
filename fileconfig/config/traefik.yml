@@ -3,8 +3,17 @@ entryPoints:
     address: :80
   websecure:
     address: :443
+
 api:
   insecure: true
+
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
+
+log:
+  filePath: /var/log/traefik.log
+  level: INFO
+
+accessLog:
+  filePath: /var/log/access.log

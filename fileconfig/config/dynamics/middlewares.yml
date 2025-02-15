@@ -1,0 +1,29 @@
+http:
+  middlewares:
+    secureHeaders:
+      headers:
+        frameDeny: true
+        sslRedirect: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+
+    local-whitelist:
+      ipWhiteList:
+        sourceRange:
+          - "10.0.0.0/24"
+          - "192.168.0.0/16"
+          - "172.0.0.0/8"
+
+    user-auth:
+      basicAuth:
+        users:
+          - "user1:$apr1$MTqfVwiE$FKkzT5ERGFqwH9f3uipxA1"
+          - "user2:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"
+          - "user3:$apr1$d9hr9HBB$4HxwgUir3HP4EsggP/QNo0"
+    localsec:
+      chain:
+        middlewares:
+          - local-whitelist
+          - secureHeaders

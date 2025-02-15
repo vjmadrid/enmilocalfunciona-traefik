@@ -1,9 +1,118 @@
 # enmilocalfunciona-traefik
 
 
+
+
+**Índice**
+
+- [enmilocalfunciona-traefik](#enmilocalfunciona-traefik)
+  - [Descripción](#descripción)
+  - [Estado](#estado)
+  - [Stack Tecnológico](#stack-tecnológico)
+    - [General](#general)
+    - [Dependencias proyectos de arquitectura](#dependencias-proyectos-de-arquitectura)
+    - [Dependencias de terceros](#dependencias-de-terceros)
+  - [Pre-Requisitos](#pre-requisitos)
+  - [Makefile de gestión del proyecto](#makefile-de-gestión-del-proyecto)
+    - [Configuración](#configuración)
+  - [Configuración](#configuración-1)
+    - [Configuración de dominios locales](#configuración-de-dominios-locales)
+    - [Crear una contraseña para Traefik](#crear-una-contraseña-para-traefik)
+    - [Crear el fichero "acme.json"](#crear-el-fichero-acmejson)
+    - [Crear un red puclica en docker](#crear-un-red-puclica-en-docker)
+  - [Uso](#uso)
+    - [Escalado](#escalado)
+    - [Probar](#probar)
+  - [Uso](#uso-1)
+  - [Autor](#autor)
+
+
+
+
+
+## Descripción
+
+Este **repositorio** se encarga de servir como una **estructura** de los **recursos utilizados** para los **artículos publicados** en la plataforma **enmilocalfunciona.io** relacionados con el uso de **Spectral** y basado en la serie de artículos **“Primeros pasos con Spectral”**
+
+* [Primeros pasos con Spectral (Parte 1)](https://www.enmilocalfunciona.io/primeros-pasos-con-spectral/): Artículo de introducción a la herramienta Spectral que hace uso de diferentes ejemplos y que explica diferentes enfoques de diseño.
+  * Su directorio de trabajo es **"basic/"**
+
+
+
+
+
+## Estado
+
+Este proyecto se encuentra en construcción
+
+
+
+
+
+## Stack Tecnológico
+
+### General
+
+* [Docker](https://www.docker.com/) - Tecnología de Contenedores/Containers
+* [Docker Hub](https://hub.docker.com/) - Repositorio de Docker Público
+* [Traefik](xxx) - Herramienta Reverse Proxy
+
+
+### Dependencias proyectos de arquitectura
+
+N/A
+
+
+### Dependencias de terceros
+
+N/A
+
+
+
+
+
+## Pre-Requisitos
+
+* Requerido tener instalado Docker y Docker Compose
+* Requerido tener instalado soporte para Makefiles
+* Requeridos disponer de varios dominios públicos para los ejemplos (Pueden ser configurados localmente)
+* Requerido tener disponibles los puertos 80, 8080 y 443
+
+
+
+
+
+## Makefile de gestión del proyecto
+
+Se ha diseñado un component software para la gestión del ciclo de vida de las aplicaciones utilizadas
+Este componente se ha diseñado sobre la tecnología Makefile
+
+* Requiere que el ordenador tenga soporte para ejecutar esta tecnología
+
+Se compone de 3 ficheros:
+
+* **docker.mk**: Fichero Makefile parcial para gestionar las operaciones y acciones relacionadas con Docker y Docker Compose
+* **traefik.mk**: Fichero Makefile parcial para gestionar las operaciones y acciones relacionadas con Traefik
+* **Makefile**: Fichero Makefile genera que gestiona el resto de ficheros
+
+### Configuración
+
+La configuración de este componente se divide en dos partes:
+
+* **.env**: Fichero de variables de entorno que se incorpora a la ejecución del Makefile
+* **Configuración específica**: Cada Fichero Makefile dispone de una sección con la configuración particular
+
+
+
+
+
 ## Configuración
 
-### Configuración del dominio
+## Gestor del proyecto
+
+Se ha diseñado una pieza gestora 
+
+### Configuración de dominios locales
 
 Se usaran 3 dominios locales para exponer los endpoints del ejemplo
 
@@ -72,3 +181,36 @@ chmod 600 acme.json
     docker network create traefik_public
 ```
 
+
+## Uso
+
+### Escalado
+
+```bash
+docker-compose up --scale backend1=3 -d
+```
+
+### Probar
+
+curl localhost:8080/api/rawdata
+
+curl localhost:8080/api/rawdata | jq
+
+curl -s localhost | grep Hostname | awk '{print $2}'
+
+
+
+
+
+
+## Uso
+
+Cada una de las partes que componen los artículos dispondrán de un fichero README explicativo
+
+
+
+
+
+## Autor
+
+* **Víctor Madrid**
