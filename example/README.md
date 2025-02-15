@@ -2,9 +2,13 @@
 
 Este proyecto representa una estructura de recursos utilizados para el uso de **Traefik** con **Docker**
 
-* **docker-compose.yaml:** representa una instalación independiente, básica, y customizada (a nivel de propiedades) de **Traefik** con **Docker**
+* **docker-compose.yaml:** representa una instalación independiente, básica, y customizada (a nivel de parámetros) de **Traefik** con **Docker**
 
-Incluye el uso de Base de datos **Whoami** (para conseguir persistencia)
+Incluye el uso de la aplicación de ejemplo de **whoami**
+
+* Ayudará a probar Traefik
+* Aplicación proporcionada por el propio fabricante
+* https://hub.docker.com/r/traefik/whoami
 
 
 
@@ -14,7 +18,7 @@ Incluye el uso de Base de datos **Whoami** (para conseguir persistencia)
 
 * [Docker](https://www.docker.com/) - Tecnología de Contenedores/Containers
 * [Docker Hub](https://hub.docker.com/) - Repositorio de Docker Público
-* [Traefik](xxx) - xxx
+* [Traefik](https://traefik.io/) - Tecnología de Edge Server
 
 Dependencias con Proyectos de Arquitectura
 
@@ -33,6 +37,10 @@ N/A
 Define que elementos son necesarios para instalar el software
 
 * Docker instalado (19+)
+* Dominios públicos creados
+  * Se indica en el fichero README.md principal del respositorio
+* Soporte a Makefile
+* cURL instalado
 
 
 
@@ -40,91 +48,118 @@ Define que elementos son necesarios para instalar el software
 
 ## Instalación
 
-### Docker Compose
-
-Configuración del fichero "docker-compose.yaml"
-
-```bash
-
-```
-
-En este fichero se establece el constructor de la imagen que se utilizará, se definirán una serie de volúmenes y se publicará por el puerto específico de la aplicación
-
-Configuración del fichero "Dockerfile"
-
-```bash
-
-```
-
-En este fichero se establece la versión a utilizar de sonarqube, contiene una serie de instrucciones que pueden facilitar la preparación de la imagen y el despliegue inicial, incorpora el cambio de las propieaddes de la aplicación
-
-Pasos a seguir
-
-
-1. Localizar el directorio principal del proyecto : <PROJECT_PATH> (/example)
-
-2. Ejecutar el siguiente comando
-
-```bash
-docker-compose up --build
-
-ó
-
-docker-compose up --build -d
-```
-
-3. Comprobar que la imagen ha sido creada
-
-Verificar que parece como imagen Docker el nombre "xxx"
-
-
-
-
-
-### Docker Standalone
-
 N/A
 
 
 
 
+### Ejemplo "EXAMPLE-docker-compose-01.yml"
 
-## Uso
+Ejemplo básico de Traefik monitorizando la aplicación de whoami
+
+>Importante: Este ejemplo es el que se proporciona en la web con algun cambio mínimo
+
+#### Configurar el fichero ".env" principal
+
+Pasos a seguir:
+
+1. Localizar el directorio principal del proyecto : <PROJECT_PATH>
+
+2. Localizar el fichero ".env"
+
+3. Modificar la ruta local del fichero Docker Compose utilizado
+
+Se debe indicar el directorio y el nombre del fichero
+
+```bash
+DOCKER_COMPOSE_FILE_USED=./example/EXAMPLE-docker-compose-01.yml
+```
+
+4. Guardar el fichero
 
 
-### Uso de Traefik
+### Configurar el fichero Docker Compose
+
+Configuración del fichero "EXAMPLE-docker-compose-01.yml"
+
+```bash
+
+```
+
+**Explicación para el contenedor "traefik"**
+
+* Basado en la imagen traefik:v3.3.3
+* Establecemos alguna variable de entorno que ayudará a la configuración
+* Establecemos en la sección "command" configuración estática
+  * --api.insecure=true
+  * --providers.docker al comando de arranque de la imagen Traefik
+* Conectamos los puertos 80 y 8080 del contenedor al exterior (a la red host)
+* Definimos un bind mount para que el socket de comunicación con Docker esté disponible para el contenedor
+  * Se necesita para que Traefik pueda conectar el provider docker al API de Docker en la máquina host
+
+
+**Explicación para el contenedor "backend1"**
+
+
+
+#### Uso
+
+Pasos a seguir
+
+1. Localizar el directorio principal del proyecto : <PROJECT_PATH>
+
+2. Ejecutar el siguiente comando
+
+```bash
+make up
+```
+
+3. Verificar que se han levantado los dos contenedores sin problemas
+
+
+#### Uso de Traefik
 
 **Probar acceso al Web UI**
 
-Cargar la URL :
+Pasos a seguir
 
-```bash
-http://localhost:8080/
-```
+1. Arrancar un navegador
+2. Cargar la URL: **http://localhost:8080/**
+3. Verificar que se carga la interfaz Web de Traefik
 
 **Probar acceso al API**
 
-Ejecutar el siguiente comando :
+Pasos a seguir:
 
-```bash
- http://localhost:8080/api/rawdata
-```
+1. Arrancar un navegador
+2. Cargar la URL: **http://localhost:8080/api/rawdata**
+3. Verificar que se cargan detalles de configuración de Traefik en base a un JSON
 
-### Uso de Whoa.i
 
-Cargar la URL :
 
-```bash
-http://backend1.localhost
-```
+### Uso de Whoami
 
-**Probar disponibilidad**
+**Probar el acceso a la aplicación de pruebas desde su interfaz**
 
-Ejecutar el siguiente comando :
+Pasos a seguir:
+
+1. Arrancar un navegador
+2. Cargar la URL: **http://backend1.localhost**
+3. Verificar que se carga una página de detalle de la aplicación
+
+
+
+**Probar el acceso a la aplicación de pruebas desde línea de comandos**
+
+Pasos a seguir:
+
+1. Ejecutar el siguiente comando :
 
 ```bash
 curl -H Host:backend1.localhost http://127.0.0.1
 ```
+
+2. Verficar que se muestra información sobre la aplicación
 
 
 

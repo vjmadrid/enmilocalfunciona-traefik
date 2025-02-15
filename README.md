@@ -60,6 +60,7 @@ Este proyecto se encuentra en construcción
 * [Docker](https://www.docker.com/) - Tecnología de Contenedores/Containers
 * [Docker Hub](https://hub.docker.com/) - Repositorio de Docker Público
 * [Traefik](xxx) - Herramienta Reverse Proxy
+* cURL instalado
 
 
 ### Dependencias proyectos de arquitectura
@@ -81,6 +82,7 @@ N/A
 * Tener instalado soporte para Makefiles
 * Disponer de varios dominios públicos para los ejemplos (Pueden ser configurados localmente)
 * Tener disponibles los puertos 80, 8080 y 443
+* Tener instalado cURL
 
 
 

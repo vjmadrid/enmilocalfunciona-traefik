@@ -7,23 +7,28 @@ services:
     restart: unless-stopped
     networks: ['demo']
     security_opt:
-      - no-new-privileges:true
+      - no-new-privileges:true # Prevent escalate privileges using setuid or setgid binaries
     environment:
       - TZ=Europe/Madrid
     command:
       # STATIC CONFIGURATION
       # *** Logging configuration ***
       - --log.level=info # Logging levels are DEBUG, PANIC, FATAL, ERROR, WARN, and INFO
+      - --log.filePath=/logs/traefik.log
       #- --log.format=json
       # *** API configuration ***
-      - --api.insecure=true # Set access to traefic api wihout autentication
+      - --api.insecure=true # Set access to traefic api wihout autentication (NO use Production)
+      # *** Docker provider configuration ***
+      - --providers.docker=true
     ports:
-      - 80:80 # The HTTP port
-      - 8080:8080 # The Web UI (enabled by --api.insecure=true)
+      - 80:80 # HTTP port
+      - 8080:8080 # Web UI port (enabled by --api.insecure=true)
     volumes:
       # *** General configuration ***
       #- /etc/localtime:/etc/localtime:ro # Uses the same timezone as the computer instance
       - /var/run/docker.sock:/var/run/docker.sock:ro # Access to Docker on host machine
+      # *** Volume configuration ***
+      - ./traefik-docker/logs:/logs # Storage for Traefik Logs
 
   # https://github.com/traefik/whoami
   backend1:

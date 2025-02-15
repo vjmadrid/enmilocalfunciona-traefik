@@ -1,0 +1,10 @@
+2025-02-15T20:55:39+01:00 INF Traefik version 3.3.3 built on 2025-01-31T14:55:01Z version=3.3.3
+2025-02-15T20:55:39+01:00 INF 
+Stats collection is disabled.
+Help us improve Traefik by turning this feature on :)
+More details on: https://doc.traefik.io/traefik/contributing/data-collection/
+
+2025-02-15T20:55:39+01:00 INF Starting provider aggregator *aggregator.ProviderAggregator
+2025-02-15T20:55:39+01:00 INF Starting provider *traefik.Provider
+2025-02-15T20:55:39+01:00 INF Starting provider *docker.Provider
+2025-02-15T20:55:39+01:00 INF Starting provider *acme.ChallengeTLSALPN
