@@ -1,43 +1,72 @@
+# Project URL: https://github.com/traefik/traefik
+# Docs URL: https://doc.traefik.io/traefik/
+# Use Case:
 services:
   traefik:
-    image: traefik:v2.10
-    container_name: "traefik"
-    restart: always
+    image: traefik:v3.3.3
+    container_name: traefik
+    restart: unless-stopped
     networks: ['demo']
+    security_opt:
+      - no-new-privileges:true # Prevent escalate privileges using setuid or setgid binaries
+    environment:
+      - TZ=Europe/Madrid
     command:
-      - "--api.insecure=true"  #Flag enables the web UI without authentication
-      - "--providers.docker=true"
-      # Define entrypoints
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--api.dashboard=true"
-      - "--providers.docker.watch"
+      # STATIC CONFIGURATION
+      # *** Logging configuration ***
+      - --log.level=info # Logging levels are DEBUG, PANIC, FATAL, ERROR, WARN, and INFO
+      - --log.filePath=/logs/traefik.log # Logging
+      #- --log.format=json
+      # *** API configuration ***
+      - - --api.insecure=true # Set access to traefic api wihout autentication (NO use Production)
+      # *** Docker provider configuration ***
+      - --providers.docker=true
+      # *** Entrypoints configuration ***
+      - --entryPoints.web.address=:80 # web entrypoint handles http traffic over port 80
+      - --api.dashboard=true
     ports:
-      - 80:80
-      - 8080:8080
+      - 80:80 # HTTP port
+      - 8080:8080 # Web UI port (enabled by --api.insecure=true)
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-        ## configuration for certificate and dns ##
-        #- /opt/traefik/acme.json:/acme.json
+      # *** General configuration ***
+      #- /etc/localtime:/etc/localtime:ro # Uses the same timezone as the computer instance
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Access to Docker on host machine
+      # *** Volume configuration ***
+      - ./traefik-docker/logs:/logs # Storage for Traefik Logs
+      #- ./traefik-docker/letsencrypt:/letsencrypt # Storage for Letsencrypt certificates
+      #- ./traefik-docker/certs:/certs # Storage for certificates
+      #- ./traefik-docker/traefik:/etc/traefik # Traefik configuration
 
+  # https://github.com/docker-library/httpd
   backend1:
-    image: nginx:alpine
-    container_name: "backend1"
+    image: httpd:2.4.63-alpine3.21
+    container_name: backend1
     restart: always
     networks: ['demo']
     labels:
-      - "traefik.http.routers.app.rule=Host(`example.localhost`)"
-      - "traefik.http.services.app.loadbalancer.server.port=80"
+      # *** General Traefik configuration ***
+      # *** Router configuration ***
+      # curl -H Host:backend1.localhost http://127.0.0.1
+      - traefik.http.routers.backend1.rule=Host(`backend1.localhost`) # Rule based on the Host of the request
+      # *** Service configuration ***
+      - traefik.http.services.backend1.loadbalancer.server.port=80
 
+  # https://github.com/docker-library/httpd
   backend2:
-    image: httpd:alpine
-    container_name: "backend2"
+    image: httpd:2.4.63-alpine3.21
+    container_name: backend2
     restart: always
     networks: ['demo']
     labels:
-      - "traefik.http.routers.app.rule=Host(`example.localhost`)"
-      - "traefik.http.services.app.loadbalancer.server.port=80"
+      # *** General Traefik configuration ***
+      # *** Router configuration ***
+      # curl -H Host:backend1.localhost http://127.0.0.1
+      - traefik.http.routers.backend2.rule=Host(`backend1.localhost`) # Rule based on the Host of the request
+      # *** Service configuration ***
+      - traefik.http.services.backend2.loadbalancer.server.port=80
+
 
 networks:
   demo:
+    name: demo
     driver: bridge

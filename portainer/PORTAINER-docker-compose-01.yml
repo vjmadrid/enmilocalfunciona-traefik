@@ -1,0 +1,53 @@
+# Project URL: https://github.com/traefik/traefik
+# Docs URL: https://doc.traefik.io/traefik/
+# Use Case:
+services:
+  traefik:
+    image: traefik:v3.3.3
+    container_name: traefik
+    restart: unless-stopped
+    networks: ['frontnet']
+    security_opt:
+      - no-new-privileges:true # Prevent escalate privileges using setuid or setgid binaries
+    ports:
+      - 80:80 # HTTP port
+      - 443:443 # HTTPs port
+    volumes:
+      # *** General configuration ***
+      #- /etc/localtime:/etc/localtime:ro # Uses the same timezone as the computer instance
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Access to Docker on host machine
+      # *** Traefik configuration ***
+      - ./traefik/traefik.yml:/traefik.yml:ro
+      - ./traefik/configurations:/configurations:ro
+      - ./traefik/letsencrypt/acme.json:/acme.json
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=frontnet
+      - traefik.http.routers.traefik-secure.entrypoints=https
+      - traefik.http.routers.traefik-secure.rule=Host(`proxy.localhost`)
+      - traefik.http.routers.traefik-secure.service=api@internal
+      - traefik.http.routers.traefik-secure.middlewares=user-auth@file
+
+  portainer:
+    image: portainer/portainer-ce:2.24.0-alpine
+    container_name: portainer
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - frontnet
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./portainer:/data
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=frontnet
+      - traefik.http.routers.portainer-secure.entrypoints=https
+      - traefik.http.routers.portainer-secure.rule=Host(`portainer.yourdomain.com`)
+      - traefik.http.routers.portainer-secure.service=portainer
+      - traefik.http.services.portainer.loadbalancer.server.port=9000
+
+networks:
+  frontnet:
+    external: true

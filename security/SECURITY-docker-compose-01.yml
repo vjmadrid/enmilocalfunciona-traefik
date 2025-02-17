@@ -1,5 +1,6 @@
 # Project URL: https://github.com/traefik/traefik
 # Docs URL: https://doc.traefik.io/traefik/
+# Use Case: http-challenge
 services:
   traefik:
     image: traefik:v3.3.3
@@ -28,7 +29,7 @@ services:
       # *** Certificate configuration ***
       - --certificatesresolvers.myresolver.acme.httpchallenge=true
       - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
-      - --certificatesresolvers.myresolver.acme.email=tu-email@gmail.com
+      - --certificatesresolvers.myresolver.acme.email=admin@acme.com
       - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
     ports:
       - 80:80
@@ -53,14 +54,13 @@ services:
     labels:
       # *** General Traefik configuration ***
       - traefik.enable=true # Explicitly instruct Traefik to expose this service
-      #- traefik.port=80
       # *** Router configuration ***
+      - traefik.http.routers.backend1.entrypoints=websecure
       # curl -k -H Host:backend1.localhost https://127.0.0.1
       - traefik.http.routers.backend1.rule=Host(`backend1.localhost`) # Rule based on the Host of the request
-      - traefik.http.routers.backend1.entrypoints=websecure
       - traefik.http.routers.backend1.tls=true
       - traefik.http.routers.backend1.tls.certresolver=myresolver
-      - traefik.http.services.ram-web.loadbalancer.server.port=80
+      #- traefik.http.services.backend1.loadbalancer.server.port=80
 
 volumes:
   traefik-docker:

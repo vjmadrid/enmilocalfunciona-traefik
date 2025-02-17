@@ -88,14 +88,36 @@ Configuración del fichero "EXAMPLE-docker-compose-01.yml"
 
 **Explicación para el contenedor "traefik"**
 
-* Basado en la imagen traefik:v3.3.3
+* Se establece la imagen de Traefiki con una versióne establecida: **traefik:v3.3.3**
+* Se define el nombre del contenedor como: **traefik**
+* Se define la política de restart
+* Se define la red en la que se ubicará
+  * En este caso se trata de una red privada
+* Se define la opción "security_opt: no-new-privileges" para impedir escaladas de privilegios con setuid
 * Establecemos alguna variable de entorno que ayudará a la configuración
-* Establecemos en la sección "command" configuración estática
+  * En este caso se defin el "time zone" que es un aspecto importante para la monitorización y el logging
+* Establecemos en la sección "command" la siguiente configuración estática
+  * --log.level=info : Nivel de logs utilizados
+  * --log.filePath=/logs/traefik.log : Ubicación del fichero de logs físico utilizado
   * --api.insecure=true
-  * --providers.docker al comando de arranque de la imagen Traefik
-* Conectamos los puertos 80 y 8080 del contenedor al exterior (a la red host)
-* Definimos un bind mount para que el socket de comunicación con Docker esté disponible para el contenedor
-  * Se necesita para que Traefik pueda conectar el provider docker al API de Docker en la máquina host
+  * --providers.docker : Se indica que el provider utilizado sera el de Docker
+    * Si no se establece el parámetro "exposedByDefault" este se considera con valor "true" por lo que todos los contenedores en Docker se hacen visibles para Traefik
+    * Se aconseja que su valor sea "false", de esta forma se tendrá que indicar de forma particular que contenedores queremos que vea Traefik
+* Se definen los puertos:
+  * 80 para las peticiones HTTP
+  * 8080 para acceder a la Web UI de Traefik
+* Se definen los volúmenes del contenedor:
+  * Se mapea /etc/localtime para que el contenedor sincronice la hora con el host
+  * Se mapea el socket de Docker
+    * Requerido por el uso del provider de Docker
+    * Define un bind mount para que el socket de comunicación con Docker esté disponible para el contenedor
+    * Permite que Traefik pueda conectar el provider docker al API de Docker en la máquina host
+
+
+>**Importante**
+>
+>La opción api.insecure NO debe utilizarse en producción
+
 
 
 **Explicación para el contenedor "backend1"**
@@ -159,7 +181,18 @@ Pasos a seguir:
 curl -H Host:backend1.localhost http://127.0.0.1
 ```
 
-2. Verficar que se muestra información sobre la aplicación
+Explicación
+
+En este ejemplo hemos utilizados dominios locales para identificar a los diferentes elementos.
+Por lo que todos ellos estan en nuestro ordenador (localhost)
+
+Para poder diferenciar a cual nos estamos refiriendo le incorporamos la cabecera, de esta forma se indicará a cual de los dominios estamos haciendo referencia
+
+Cuando se lanza esta petición curl Traefik la recibe por el puerto 80, comprueba que hay un router que encaja con esa cabecera ("backend1.localhost") y en base a esa regla le redirige la petición al contenedor de servicio "backend1"
+
+Este router se configuró automáticamente gracias a la etiqueta traefik.http.routers.whoami.rule=Host('whoami.docker.localhost') que asociamos al contenedor whoami en el fichero docker-compose.yml. Estas etiquetas son procesadas a través del provider Docker para reconfigurar Traefik en tiempo real
+
+1. Verficar que se muestra información sobre la aplicación
 
 
 

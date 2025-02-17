@@ -1,5 +1,6 @@
 # Project URL: https://github.com/traefik/traefik
 # Docs URL: https://doc.traefik.io/traefik/
+# Use Case:
 services:
   traefik:
     image: traefik:v3.3.3
@@ -12,18 +13,22 @@ services:
       - TZ=Europe/Madrid
     command: "--configFile=/config/traefik.yml"
     ports:
-      - 80:80
-      - 8080:8080
-      - 443:443
+      - 80:80 # HTTP port
+      - 8080:8080 # Web UI port (enabled by --api.insecure=true)
+      - 443:443 # HTTPs port
     volumes:
+      # *** General configuration ***
+      #- /etc/localtime:/etc/localtime:ro # Uses the same timezone as the computer instance
       - /var/run/docker.sock:/var/run/docker.sock:ro # Access to Docker on host machine
-      - ./config/traefik4.yml:/config/traefik.yml:ro
-      - ./config/localhost.crt:/certs/localhost.crt:ro
-      - ./config/localhost.key:/certs/localhost.key:ro
+      # *** Volume configuration ***
       - ./traefik-docker/logs:/logs # Storage for Traefik Logs
       - ./traefik-docker/letsencrypt:/letsencrypt # Storage for Letsencrypt certificates
       - ./traefik-docker/certs:/certs # Storage for certificates
       - ./traefik-docker/traefik-data:/etc/traefik # Traefik configuration
+      # *** Traefik configuration ***
+      - ./config/traefik4.yml:/config/traefik.yml:ro
+      - ./config/localhost.crt:/certs/localhost.crt:ro
+      - ./config/localhost.key:/certs/localhost.key:ro
     labels:
       # *** General Traefik configuration ***
       - traefik.enable=true
@@ -36,17 +41,18 @@ services:
       #- traefik.http.middlewares.ratelimit.ratelimit.average=100
       #- traefik.http.middlewares.ratelimit.ratelimit.burst=50
 
+  # https://github.com/docker-library/httpd
   backend1:
-    image: httpd:alpine
+    image: httpd:2.4.63-alpine3.21
     container_name: backend1
     restart: always
     networks: ['localhost_net']
     labels:
       # *** General Traefik configuration ***
-      - traefik.enable=true
+      - traefik.enable=true # Explicitly instruct Traefik to expose this service
       # *** Router configuration ***
-      - traefik.http.routers.backend1.rule=Host(`backend1.localhost`)
       - traefik.http.routers.backend1.entrypoints=websecure
+      - traefik.http.routers.backend1.rule=Host(`backend1.localhost`) # Rule based on the Host of the request
       # *** Service configuration ***
       - traefik.http.services.backend1.loadbalancer.server.port=80
       # *** Healthcheck configuration ***

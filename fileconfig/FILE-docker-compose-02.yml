@@ -1,5 +1,6 @@
 # Project URL: https://github.com/traefik/traefik
 # Docs URL: https://doc.traefik.io/traefik/
+# Use Case:
 services:
   traefik:
     image: traefik:v3.3.3
@@ -7,19 +8,22 @@ services:
     restart: unless-stopped
     networks: ['demo']
     security_opt:
-      - no-new-privileges:true
+      - no-new-privileges:true # Prevent escalate privileges using setuid or setgid binaries
     environment:
       - TZ=Europe/Madrid
     ports:
-      - 80:80
-      - 8080:8080
-      - 443:443
+      - 80:80 # HTTP port
+      - 8080:8080 # Web UI port (enabled by --api.insecure=true)
+      - 443:443 # HTTPs port
     volumes:
+      # *** General configuration ***
+      #- /etc/localtime:/etc/localtime:ro # Uses the same timezone as the computer instance
       - /var/run/docker.sock:/var/run/docker.sock:ro # Access to Docker on host machine
+      # *** Volume configuration ***
       - ./traefik-docker/logs:/logs # Storage for Traefik Logs
       - ./traefik-docker/letsencrypt:/letsencrypt # Storage for Letsencrypt certificates
       - ./traefik-docker/certs:/certs # Storage for certificates
-      # *** Configuration **
+      # *** Traefik configuration **
       - ./config/traefik3.yml:/traefik.yml:ro               # static traefik configuration
       - ./config/dynamic.yaml:/etc/traefik/dynamic.yaml:ro  # dynamic traefik configuration
       - ./config/acme.json:/etc/traefik/acme.json           # TLS certificate storage
@@ -42,27 +46,27 @@ services:
       - traefik.http.services.traefik.loadbalancer.server.port=8080
 
   # https://github.com/traefik/whoami
-  whoami:
+  backend1:
     image: traefik/whoami:v1.10.4
-    container_name: whoami
+    container_name: backend1
     restart: always
     networks: ['demo']
     labels:
       # *** General Traefik configuration ***
       - traefik.enable=true # Explicitly instruct Traefik to expose this service
       # *** Router configuration ***
-      - traefik.http.routers.whoami.rule=Host(`whoami.localhost`) # Rule based on the Host of the request
-      - traefik.http.routers.whoami.entrypoints=web-secure
+      - traefik.http.routers.backend1.entrypoints=web-secure
+      # curl -H Host:backend1.localhost https://127.0.0.1
+      - traefik.http.routers.backend1.rule=Host(`backend1.localhost`) # Rule based on the Host of the request
+      - traefik.http.routers.backend1.tls=true
+      - traefik.http.routers.backend1.tls.certresolver=tlschallenge
       # *** Service configuration ***
-      - traefik.http.services.whoami.loadbalancer.server.port=80
-      # *** TLS configuration ***
-      - traefik.http.routers.whoami.tls=true
-      - traefik.http.routers.whoami.tls.certresolver=tlschallenge
+      - traefik.http.services.backend1.loadbalancer.server.port=80
       # *** Middleware configuration ***
-      - traefik.http.routers.whoami.middlewares=secHeaders@file
+      - traefik.http.routers.backend1.middlewares=secHeaders@file
 
 volumes:
-  traefik-data:
+  traefik-docker:
 
 networks:
   demo:

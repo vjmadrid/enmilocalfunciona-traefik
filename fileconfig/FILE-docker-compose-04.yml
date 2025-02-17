@@ -6,31 +6,28 @@ services:
     image: traefik:v3.3.3
     container_name: traefik
     restart: unless-stopped
-    networks: ['demo']
+    networks: ['frontnet']
     security_opt:
       - no-new-privileges:true # Prevent escalate privileges using setuid or setgid binaries
-    environment:
-      - TZ=Europe/Madrid
     ports:
       - 80:80 # HTTP port
-      - 8080:8080 # Web UI port (enabled by --api.insecure=true)
+      - 443:443 # HTTPs port
     volumes:
       # *** General configuration ***
       #- /etc/localtime:/etc/localtime:ro # Uses the same timezone as the computer instance
       - /var/run/docker.sock:/var/run/docker.sock:ro # Access to Docker on host machine
-      # *** Volume configuration ***
-      - ./traefik-docker/logs:/logs # Storage for Traefik Logs
-      - ./traefik-docker/letsencrypt:/letsencrypt # Storage for Letsencrypt certificates
-      - ./traefik-docker/certs:/certs # Storage for certificates
-      #- ./traefik-docker/traefik/traefik.yml:/etc/traefik/traefik.yml
       # *** Traefik configuration ***
-      - ./config/traefik2.yml:/traefik.yml:ro
-
-
-volumes:
-  traefik-docker:
+      - ./traefik/traefik.yml:/traefik.yml:ro
+      - ./traefik/configurations:/configurations:ro
+      - ./traefik/letsencrypt/acme.json:/acme.json
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=frontnet
+      - traefik.http.routers.traefik-secure.entrypoints=https
+      - traefik.http.routers.traefik-secure.rule=Host(`proxy.localhost`)
+      - traefik.http.routers.traefik-secure.service=api@internal
+      - traefik.http.routers.traefik-secure.middlewares=user-auth@file
 
 networks:
-  demo:
-    name: demo
-    driver: bridge
+  frontnet:
+    external: true

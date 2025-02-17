@@ -1,5 +1,6 @@
 # Project URL: https://github.com/traefik/traefik
 # Docs URL: https://doc.traefik.io/traefik/
+# Use Case:
 services:
   traefik:
     image: traefik:v3.3.3
@@ -7,41 +8,43 @@ services:
     restart: unless-stopped
     networks: ['demo']
     security_opt:
-      - no-new-privileges:true
+      - no-new-privileges:true # Prevent escalate privileges using setuid or setgid binaries
     environment:
       - TZ=Europe/Madrid
     command:
       # STATIC CONFIGURATION
       # *** Logging configuration ***
       - --log.level=info # Logging levels are DEBUG, PANIC, FATAL, ERROR, WARN, and INFO
+      - --log.filePath=/logs/traefik.log # Logging
       #- --log.format=json
       # *** API configuration ***
-      - --api.insecure=true # Set access to traefic api wihout autentication
+      - --api.insecure=true # Set access to traefic api wihout autentication (NO use Production)
       # *** Docker provider configuration ***
       - --providers.docker=true
-      - --providers.docker.exposedbydefault=false # Require containers to define 'traefik.enable=true' to be exposed
+      - --providers.docker.exposedbydefault=false # Not want Traefik to expose ALL containers by default. Require containers to define 'traefik.enable=true' to be exposed
+      #- --providers.docker.network=demo
       # *** Entrypoints configuration ***
       - --entryPoints.web.address=:80 # web entrypoint handles http traffic over port 80
     ports:
-      - 80:80
-      - 8080:8080
+      - 80:80 # HTTP port
+      - 8080:8080 # Web UI port (enabled by --api.insecure=true)
     volumes:
       # *** General configuration ***
       #- /etc/localtime:/etc/localtime:ro # Uses the same timezone as the computer instance
       - /var/run/docker.sock:/var/run/docker.sock:ro # Access to Docker on host machine
       # *** Volume configuration ***
-      #- ./traefik-docker/logs:/logs # Storage for Traefik Logs
+      - ./traefik-docker/logs:/logs # Storage for Traefik Logs
       #- ./traefik-docker/letsencrypt:/letsencrypt # Storage for Letsencrypt certificates
       #- ./traefik-docker/certs:/certs # Storage for certificates
       #- ./traefik-docker/traefik:/etc/traefik # Traefik configuration
 
-  # https://github.com/traefik/whoami
+  # https://github.com/nginx/nginx
   backend1:
-    image: traefik/whoami:v1.10.4
+    image: nginx:1.27.4-alpine
     container_name: backend1
     restart: always
     networks: ['demo']
-    labels: # OPTION 1
+    labels:
       # *** General Traefik configuration ***
       - traefik.enable=true # Explicitly instruct Traefik to expose this service
       # *** Router configuration ***
@@ -51,15 +54,6 @@ services:
       - traefik.http.routers.backend1_route.service=backend1_service
       # *** Service configuration ***
       - traefik.http.services.backend1_service.loadbalancer.server.port=80
-    #labels: # OPTION 2
-    #  # *** General Traefik configuration ***
-    #  - traefik.enable=true # Explicitly instruct Traefik to expose this service
-    #  # *** Router configuration ***
-    #  # curl -H Host:backend1.localhost http://127.0.0.1
-    #  - traefik.http.routers.backend1.rule=Host(`backend1.localhost`) # Rule based on the Host of the request
-    #  - traefik.http.routers.backend1.entrypoints=web # Listen to the 'web' entrypoint
-    #  # *** Service configuration ***
-    #  - traefik.http.services.backend1.loadbalancer.server.port=80
 
 volumes:
   traefik-docker:

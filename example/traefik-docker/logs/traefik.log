@@ -8,3 +8,11 @@ More details on: https://doc.traefik.io/traefik/contributing/data-collection/
 2025-02-15T20:55:39+01:00 INF Starting provider *traefik.Provider
 2025-02-15T20:55:39+01:00 INF Starting provider *docker.Provider
 2025-02-15T20:55:39+01:00 INF Starting provider *acme.ChallengeTLSALPN
+2025-02-16T12:31:19+01:00 INF I have to go...
+2025-02-16T12:31:19+01:00 INF Stopping server gracefully
+2025-02-16T12:31:19+01:00 ERR error="accept tcp [::]:8080: use of closed network connection" entryPointName=traefik
+2025-02-16T12:31:19+01:00 ERR error="close tcp [::]:8080: use of closed network connection" entryPointName=traefik
+2025-02-16T12:31:19+01:00 ERR error="accept tcp [::]:80: use of closed network connection" entryPointName=http
+2025-02-16T12:31:19+01:00 ERR error="close tcp [::]:80: use of closed network connection" entryPointName=http
+2025-02-16T12:31:19+01:00 INF Server stopped
+2025-02-16T12:31:19+01:00 INF Shutting down

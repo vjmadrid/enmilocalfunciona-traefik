@@ -66,15 +66,16 @@ services:
   backend1:
     image: httpd:alpine
     container_name: backend1
-    restart: always
+    restart: unless-stopped
     networks: ['demo']
     labels:
       # *** General Traefik configuration ***
       - traefik.enable=true # Explicitly instruct Traefik to expose this service
       # *** Router configuration ***
+      - traefik.http.routers.backend1.entrypoints=web
       # curl -H Host:backend1.localhost http://127.0.0.1
       - traefik.http.routers.backend1.rule=Host(`backend1.$DOMAIN`) #Rule based on the Host of the request
-      - traefik.http.routers.backend1.entrypoints=web
+      
       # SEGURIDAD
       #- traefik.http.routers.backend1.tls=true
       #- traefik.http.routers.backend1.entrypoints=websecure

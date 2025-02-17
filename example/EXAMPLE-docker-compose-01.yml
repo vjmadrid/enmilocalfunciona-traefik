@@ -14,8 +14,7 @@ services:
       # STATIC CONFIGURATION
       # *** Logging configuration ***
       - --log.level=info # Logging levels are DEBUG, PANIC, FATAL, ERROR, WARN, and INFO
-      - --log.filePath=/logs/traefik.log
-      #- --log.format=json
+      - --log.filePath=/logs/traefik.log # Logging
       # *** API configuration ***
       - --api.insecure=true # Set access to traefic api wihout autentication (NO use Production)
       # *** Docker provider configuration ***
